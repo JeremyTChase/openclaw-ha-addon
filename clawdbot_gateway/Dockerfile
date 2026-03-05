@@ -49,7 +49,7 @@ RUN npm install -g pnpm openclaw \
   && pnpm config set global-bin-dir /pnpm \
   && pnpm add -g clawdhub
 
-RUN pip3 install --no-cache-dir --break-system-packages homeassistant-cli
+RUN pip3 install --no-cache-dir --break-system-packages homeassistant-cli yfinance
 
 # Install gog CLI (Google Workspace: Gmail, Calendar, Drive, Contacts, Sheets, Docs)
 ARG GOG_VERSION=0.6.1
