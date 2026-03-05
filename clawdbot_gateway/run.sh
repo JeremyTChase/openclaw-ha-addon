@@ -11,6 +11,8 @@ BASE_DIR=/config/openclaw
 STATE_DIR="${BASE_DIR}/.openclaw"
 CONFIG_PATH="${STATE_DIR}/openclaw.json"
 REPO_DIR="${BASE_DIR}/openclaw-src"
+HOOK_DIR="${BASE_DIR}/hooks"
+STARTUP_HOOK="${HOOK_DIR}/startup.sh"
 WORKSPACE_DIR="${BASE_DIR}/workspace"
 SSH_AUTH_DIR="${BASE_DIR}/.ssh"
 PNPM_HOME="${BASE_DIR}/.local/share/pnpm"
@@ -19,7 +21,7 @@ if [ -x /migrate.sh ]; then
   /migrate.sh
 fi
 
-mkdir -p "${BASE_DIR}" "${STATE_DIR}" "${WORKSPACE_DIR}" "${SSH_AUTH_DIR}" "${PNPM_HOME}"
+mkdir -p "${BASE_DIR}" "${STATE_DIR}" "${WORKSPACE_DIR}" "${SSH_AUTH_DIR}" "${PNPM_HOME}" "${HOOK_DIR}"
 
 # Create persistent directories
 mkdir -p "${BASE_DIR}/.config/gh" "${BASE_DIR}/.local" "${BASE_DIR}/.cache" "${BASE_DIR}/.npm" "${BASE_DIR}/bin"
@@ -168,6 +170,22 @@ EOF_WRAPPER
 
 remove_openclaw_wrapper() {
   rm -f "${BASE_DIR}/bin/openclaw"
+}
+
+run_startup_hook() {
+  if [ -f "${STARTUP_HOOK}" ]; then
+    if [ ! -x "${STARTUP_HOOK}" ]; then
+      log "startup hook exists but is not executable: ${STARTUP_HOOK}"
+      return 0
+    fi
+
+    log "running startup hook: ${STARTUP_HOOK}"
+    if "${STARTUP_HOOK}"; then
+      log "startup hook completed successfully"
+    else
+      log "startup hook failed (continuing startup)"
+    fi
+  fi
 }
 
 ensure_gateway_auth_token() {
@@ -330,4 +348,5 @@ if [ "${VERBOSE}" = "true" ]; then
   ARGS+=(--verbose)
 fi
 
+run_startup_hook
 exec openclaw "${ARGS[@]}"
